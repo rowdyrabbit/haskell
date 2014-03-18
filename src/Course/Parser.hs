@@ -354,7 +354,7 @@ spaces1 = many1 space
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isLower@ functions.
 lower ::
   Parser Char
-lower = satisfy(\i -> isLower i)
+lower = satisfy isLower i
 
 -- | Return a parser that produces an upper-case character but fails if
 --
