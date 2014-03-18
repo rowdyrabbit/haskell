@@ -283,6 +283,8 @@ satisfy predicate =
 
 
 
+
+
 -- | Return a parser that produces the given character but fails if
 --
 --   * The input is empty.
@@ -354,7 +356,7 @@ spaces1 = many1 space
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isLower@ functions.
 lower ::
   Parser Char
-lower = satisfy isLower i
+lower = satisfy isLower
 
 -- | Return a parser that produces an upper-case character but fails if
 --
