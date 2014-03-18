@@ -84,7 +84,6 @@ headOr _ (t:._) = t
 --
 -- >>> product (1 :. 2 :. 3 :. 4 :. Nil)
 -- 24
-
 product :: List Int -> Int
 product Nil = 1
 product (h :. t) = h * product t
@@ -108,7 +107,6 @@ sum (h :. t) = h + sum t
 -- 3
 --
 -- prop> sum (map (const 1) x) == length x
-
 length :: List a -> Int
 length Nil = 0
 length (h :. t) = 1 + length t
@@ -125,14 +123,6 @@ map ::
   (a -> b)
   -> List a
   -> List b
-  -- f :: a -> b 
-  -- h :: a
-  -- t :: List a
-  -- map :: (a -> b) -> List a -> List b
-
-  -- f h :: b
-  -- f h :. map f t :: List b
-  -- map f t :: List b
 map f Nil = Nil
 map f (h :. t) =  f(h) :. map f t
 
@@ -155,6 +145,7 @@ filter f (h :. t) =
     let aname = filter f t
     in  if f h then h :. aname else aname
 filteragain p = foldRight(\h -> if p h then (h :.) else id) Nil
+
 
 -- | Append two lists to a new list.
 --
@@ -180,24 +171,9 @@ filteragain p = foldRight(\h -> if p h then (h :.) else id) Nil
 (+++) :: List a -> List a -> List a
 (+++) x y = foldRight (:.) y x
 
+
 infixr 5 ++
 
-bar :: Optional Int -> Int
-bar Empty = 0
-bar (Full n) = 1
-
-bar' :: List (Optional Int) -> Int
-bar' ((Full n) :. tail) = undefined
-bar' (Empty :. tail) = undefined
-bar' Nil = undefined
-
-bar'' :: List (Optional Int) -> Int
-bar'' (h :. t) = 
-  case h of
-    Empty -> 0
-    Full n -> n
-bar'' Nil =
-  0    
 -- | Flatten a list of lists to a list.
 --
 -- >>> flatten ((1 :. 2 :. 3 :. Nil) :. (4 :. 5 :. 6 :. Nil) :. (7 :. 8 :. 9 :. Nil) :. Nil)
@@ -240,7 +216,6 @@ flatMap ::
   (a -> List b)
   -> List a
   -> List b
-
 flatMap f (h :. t) = flatten (map f (h :. t))
 -- f :: a -> List b
 -- h :: a
@@ -254,6 +229,8 @@ flatMap f (h :. t) = flatten (map f (h :. t))
 
 --Alternative solution
 --flatMap f (h :. t) = f h ++ flatMap f t
+
+
 
 
 -- | Convert a list of optional values to an optional list of values.
@@ -281,7 +258,6 @@ flatMap f (h :. t) = flatten (map f (h :. t))
 seqOptional ::
   List (Optional a)
   -> Optional (List a)
-
 seqOptional = error "todo"
 --seqOptional Nil = Full Nil
 --seqOptional (h :. t) =
@@ -318,7 +294,6 @@ find ::
   (a -> Bool)
   -> List a
   -> Optional a
-
 find _ Nil = Empty
 find p (h :. t) = if p h then Full h else find p t
 
@@ -338,7 +313,6 @@ find p (h :. t) = if p h then Full h else find p t
 lengthGT4 ::
   List a
   -> Bool
-
 lengthGT4 Nil = False
 --lengthGT4 (h :. t) = if (1 + length t > 4) then True else False -> DOESN'T WORK FOR INFINITY CASE
 lengthGT4 (_:._:._:._:._:._) = True
@@ -350,18 +324,12 @@ lengthGT4 _ = False
 -- >>> reverse Nil
 -- []
 --
--- >>> reverse (1 :. 2 :. 3 :. Nil)
--- [3, 2, 1]
---  
--- reverse (h :. t) = reverse t ++ (h :. Nil)
---
 -- prop> let types = x :: List Int in reverse x ++ reverse y == reverse (y ++ x)
 --
 -- prop> let types = x :: Int in reverse (x :. Nil) == x :. Nil
 reverse ::
   List a
   -> List a
-
 reverse = error "todo"
 --reverse Nil = Nil
 --reverse (h :. t) = reverse t ++ (h :. Nil) --quadratic solution
@@ -384,8 +352,8 @@ produce ::
   (a -> a)
   -> a
   -> List a
-produce f a =
-  a:.produce f (f a)
+produce =
+  error "todo"
 
 -- | Do anything other than reverse a list.
 -- Is it even possible?
@@ -393,8 +361,7 @@ produce f a =
 -- >>> notReverse Nil
 -- []
 --
--- prop> let types = x :: List Int 
--- in notReverse x ++ notReverse y == notReverse (y ++ x)
+-- prop> let types = x :: List Int in notReverse x ++ notReverse y == notReverse (y ++ x)
 --
 -- prop> let types = x :: Int in notReverse (x :. Nil) == x :. Nil
 notReverse ::
