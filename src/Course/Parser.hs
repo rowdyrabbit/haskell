@@ -64,12 +64,12 @@ data Parser a = P {
   parse :: Input -> ParseResult a
 }
 
--- Function to produce a parser with the given result.
-result ::
-  ParseResult a
+-- | Produces a parser that always fails with @UnexpectedChar@ using the given character.
+unexpectedCharParser ::
+  Char
   -> Parser a
-result =
-  P . const
+unexpectedCharParser c =
+  P (\_ -> ErrorResult (UnexpectedChar c))
 
 -- | Return a parser that always succeeds with the given value and consumes no input.
 --
@@ -110,6 +110,29 @@ character =
 
 
 
+-- | Return a parser that maps any succeeding result with the given function.
+--
+-- >>> parse (mapParser succ character) "amz"
+-- Result >mz< 'b'
+--
+-- parse (mapParser (+10) (valueParser 7)) ""
+-- Result >< 17
+mapParser ::
+  (a -> b)
+  -> Parser a
+  -> Parser b
+mapParser =
+  error "todo"
+
+-- | This is @mapParser@ with the arguments flipped.
+-- It might be more helpful to use this function if you prefer this argument order.
+flmapParser ::
+  Parser a
+  -> (a -> b)
+  -> Parser b
+flmapParser =
+  flip mapParser
+
 -- | Return a parser that puts its input into the given parser and
 --
 --   * if that parser succeeds with a value (a), put that value into the given function
@@ -147,11 +170,13 @@ bindParser f (P p) =
                 ErrorResult e -> ErrorResult e
                 Result rest a -> parse (f a) rest)
 
-fbindParser ::
+-- | This is @bindParser@ with the arguments flipped.
+-- It might be more helpful to use this function if you prefer this argument order.
+flbindParser ::
   Parser a
   -> (a -> Parser b)
   -> Parser b
-fbindParser =
+flbindParser =
   flip bindParser
 
 
@@ -387,7 +412,7 @@ alpha = satisfy(\i -> isAlpha i)
 -- | Return a parser that sequences the given list of parsers by producing all their results
 -- but fails on the first failing parser of the list.
 --
--- /Tip:/ Use @bindParser@ and @value@.
+-- /Tip:/ Use @bindParser@ and @valueParser@.
 -- /Tip:/ Optionally use @List#foldRight@. If not, an explicit recursive call.
 --
 -- >>> parse (sequenceParser (character :. is 'x' :. upper :. Nil)) "axCdef"
@@ -448,7 +473,7 @@ ageParser =
   error "todo"
 
 -- | Write a parser for Person.firstName.
--- /First Name: non-empty string that starts with a capital letter/
+-- /First Name: non-empty string that starts with a capital letter and is followed by zero or more lower-case letters/
 --
 -- /Tip:/ Use @bindParser@, @valueParser@, @upper@, @list@ and @lower@.
 --
