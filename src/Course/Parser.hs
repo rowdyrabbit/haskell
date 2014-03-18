@@ -279,9 +279,13 @@ satisfy ::
   -- else return a parser with the character
 satisfy predicate =
     fbindParser character (\first_char ->
-    if predicate first_char then valueParser first_char else failed)
+    if predicate first_char then valueParser first_char else unexpectedCharP first_char)
 
-
+unexpectedCharP ::
+  Char
+  -> Parser a
+unexpectedCharP c =
+  P (\_ -> ErrorResult (UnexpectedChar c))
 
 
 
