@@ -32,7 +32,7 @@ data ParseError =
 
 instance Show ParseError where
   show UnexpectedEof =
-    "Expected end of stream"
+    "Unexpected end of stream"
   show (ExpectedEof i) =
     stringconcat ["Expected end of stream, but got >", show i, "<"]
   show (UnexpectedChar c) =
@@ -78,8 +78,9 @@ result =
 valueParser ::
   a
   -> Parser a
-valueParser =
-  error "todo"
+valueParser x =
+  P (\input -> Result input x)
+
 
 -- | Return a parser that always fails with the given error.
 --
@@ -88,7 +89,8 @@ valueParser =
 failed ::
   Parser a
 failed =
-  error "todo"
+  P (\_ -> ErrorResult Failed)
+
 
 -- | Return a parser that succeeds with a character off the input or fails with an error if the input is empty.
 --
@@ -99,8 +101,14 @@ failed =
 -- True
 character ::
   Parser Char
+--character (h :. t) = P (\input -> Result t h)
+--character Nil = P(\_ -> ErrorResult UnexpectedEof)
 character =
-  error "todo"
+    P(\input -> case input of
+                Nil -> ErrorResult UnexpectedEof
+                h :. t -> Result t h)
+
+
 
 -- | Return a parser that puts its input into the given parser and
 --
@@ -127,8 +135,17 @@ bindParser ::
   (a -> Parser b)
   -> Parser a
   -> Parser b
-bindParser =
-  error "todo"
+bindParser f (P p) =
+-- f :: a -> Parser b
+-- p :: Input -> ParseResult a
+-- rest :: Input
+-- a :: a
+------
+-- ParseResult b
+
+  P(\input -> case p input of
+                ErrorResult e -> ErrorResult e
+                Result rest a -> parse (f a) rest)
 
 fbindParser ::
   Parser a
@@ -136,6 +153,13 @@ fbindParser ::
   -> Parser b
 fbindParser =
   flip bindParser
+
+
+pairparser :: Parser (Char, Char)
+pairparser =
+  fbindParser character (\char1 ->
+  fbindParser character (\char2 ->
+  valueParser (char1, char2)))
 
 -- | Return a parser that puts its input into the given parser and
 --
@@ -179,8 +203,10 @@ fbindParser =
   Parser a
   -> Parser a
   -> Parser a
-(|||) =
-  error "todo"
+
+(|||) x y = P(\input -> case parse x input of
+                ErrorResult _ -> parse y input
+                Result input x -> Result input x)
 
 infixl 3 |||
 
@@ -208,14 +234,14 @@ infixl 3 |||
 list ::
   Parser a
   -> Parser (List a)
-list =
-  error "todo"
+list pa = many1 pa ||| valueParser Nil
+
 
 -- | Return a parser that produces at least one value from the given parser then
 -- continues producing a list of values from the given parser (to ultimately produce a non-empty list).
 -- The returned parser fails if The input is empty.
 --
--- /Tip:/ Use @bindParser@, @list@ and @value@.
+-- /Tip:/ Use @bindParser@, @list@ and @valueParser@.
 --
 -- >>> parse (many1 (character)) "abc"
 -- Result >< "abc"
@@ -228,8 +254,10 @@ list =
 many1 ::
   Parser a
   -> Parser (List a)
-many1 =
-  error "todo"
+many1 pa =
+  fbindParser pa (\a ->
+  fbindParser (list pa) (\listofa ->
+  valueParser (a :. listofa)))
 
 -- | Return a parser that produces a character but fails if
 --
@@ -247,8 +275,13 @@ many1 =
 satisfy ::
   (Char -> Bool)
   -> Parser Char
-satisfy =
-  error "todo"
+  -- if input is empty or character doesn't match, return error
+  -- else return a parser with the character
+satisfy predicate =
+    fbindParser character (\first_char ->
+    if predicate first_char then valueParser first_char else failed)
+
+
 
 -- | Return a parser that produces the given character but fails if
 --
@@ -259,8 +292,8 @@ satisfy =
 -- /Tip:/ Use the @satisfy@ function.
 is ::
   Char -> Parser Char
-is =
-  error "todo"
+is c = satisfy (\char -> char == c)
+--is ch = satisfy(== ch)
 
 -- | Return a parser that produces a character between '0' and '9' but fails if
 --
@@ -271,8 +304,8 @@ is =
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isDigit@ functions.
 digit ::
   Parser Char
-digit =
-  error "todo"
+digit = satisfy(\d -> isDigit d)
+
 
 -- | Return a parser that produces zero or a positive integer but fails if
 --
@@ -284,8 +317,9 @@ digit =
 -- functions.
 natural ::
   Parser Int
-natural =
-  error "todo"
+natural = fbindParser(list digit) (\ds -> case read ds of
+                                    Empty -> failed
+                                    Full n -> valueParser n)
 
 --
 -- | Return a parser that produces a space character but fails if
@@ -297,8 +331,7 @@ natural =
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isSpace@ functions.
 space ::
   Parser Char
-space =
-  error "todo"
+space = satisfy(\c -> isSpace c)
 
 -- | Return a parser that produces one or more space characters
 -- (consuming until the first non-space) but fails if
@@ -310,8 +343,7 @@ space =
 -- /Tip:/ Use the @many1@ and @space@ functions.
 spaces1 ::
   Parser Chars
-spaces1 =
-  error "todo"
+spaces1 = many1 space
 
 -- | Return a parser that produces a lower-case character but fails if
 --
@@ -322,8 +354,7 @@ spaces1 =
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isLower@ functions.
 lower ::
   Parser Char
-lower =
-  error "todo"
+lower = satisfy(\i -> isLower i)
 
 -- | Return a parser that produces an upper-case character but fails if
 --
@@ -334,8 +365,7 @@ lower =
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isUpper@ functions.
 upper ::
   Parser Char
-upper =
-  error "todo"
+upper = satisfy(\i -> isUpper i)
 
 -- | Return a parser that produces an alpha character but fails if
 --
@@ -346,8 +376,7 @@ upper =
 -- /Tip:/ Use the @satisfy@ and @Data.Char.isAlpha@ functions.
 alpha ::
   Parser Char
-alpha =
-  error "todo"
+alpha = satisfy(\i -> isAlpha i)
 
 -- | Return a parser that sequences the given list of parsers by producing all their results
 -- but fails on the first failing parser of the list.
@@ -363,8 +392,18 @@ alpha =
 sequenceParser ::
   List (Parser a)
   -> Parser (List a)
-sequenceParser =
-  error "todo"
+sequenceParser Nil = valueParser Nil
+sequenceParser (h :. t) =
+    fbindParser h (\a ->
+    fbindParser (sequenceParser t) (\as ->
+    valueParser (a :. as)))
+
+-- h :: Parser a
+-- t :: List (Parser a)
+-- sequenceParser t :: Parser (List a)
+-- a :: a
+-- as :: List a
+
 
 -- | Return a parser that produces the given number of values off the given parser.
 -- This parser fails if the given parser fails in the attempt to produce the given number of values.

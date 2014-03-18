@@ -9,7 +9,7 @@ import Course.Optional
 import Course.List
 import qualified Prelude as P
 
-class Functor f where
+class Functor f where -- like an interface (no concrete implementation)
   -- Pronounced, eff-map.
   (<$>) ::
     (a -> b)
@@ -28,8 +28,12 @@ infixl 4 <$>
 -- >>> (+1) <$> Id 2
 -- Id 3
 instance Functor Id where
-  (<$>) =
-    error "todo"
+-- data Id a = Id a
+-- (<$>) :: (a -> b) -> f a -> f b
+-- (<$>) :: (a -> b) -> Id a -> Id b
+-- (<$>)       f            (Id a) =
+   (<$>) f (Id a) = Id (f a)
+
 
 -- | Maps a function on the List functor.
 --
@@ -39,8 +43,9 @@ instance Functor Id where
 -- >>> (+1) <$> (1 :. 2 :. 3 :. Nil)
 -- [2,3,4]
 instance Functor List where
-  (<$>) =
-    error "todo"
+-- (<$>) :: (a -> b) -> f a -> f b
+-- (<$>) :: (a -> b) -> List a -> List b
+  (<$>) f list = map f list
 
 -- | Maps a function on the Optional functor.
 --
@@ -50,16 +55,32 @@ instance Functor List where
 -- >>> (+1) <$> Full 2
 -- Full 3
 instance Functor Optional where
-  (<$>) =
-    error "todo"
+-- (<$>) :: (a -> b) -> f a -> f b
+-- (<$>) :: (a -> b) -> Optional a -> Optional b
+  (<$>) f optional = mapOptional f optional
+
+-- (<$>) _ Empty = Empty
+-- (<$>) f (Full x) = Full (f x)
 
 -- | Maps a function on the reader ((->) t) functor.
 --
 -- >>> ((+1) <$> (*2)) 8
 -- 17
 instance Functor ((->) t) where
-  (<$>) =
-    error "todo"
+-- (<$>) :: (a -> b) -> f a -> f b
+-- (<$>) :: (a -> b) -> ((->) t) a -> ((->) t) b
+-- (<$>) :: (a -> b) -> (t -> a) -> (t -> b)
+-- (<$>) :: (a -> b) -> (t -> a) -> t -> b
+  (<$>)         f           g         t =
+    -- f :: a -> b
+    -- g :: t -> a
+    -- t :: t
+    -- g t :: a
+    -- f (g t) :: b
+    f (g t)
+    -- (<$>) = (.)
+
+
 
 -- | Anonymous map. Maps a constant value on a functor.
 --
