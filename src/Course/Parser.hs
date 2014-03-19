@@ -204,8 +204,10 @@ pairparser =
   Parser a
   -> Parser b
   -> Parser b
-(>>>) =
-  error "todo"
+(>>>) pa pb =
+  fbindParser pa (\_ ->
+  fbindParser pb (\b ->
+  valueParser b))
 
 -- | Return a parser that tries the first parser for a successful value.
 --
@@ -573,7 +575,8 @@ phoneParser ::
 phoneParser =
   fbindParser digit (\start ->
   fbindParser phoneBodyParser (\body ->
-  fbindParser (is '#') (\_ ->
+--  fbindParser (is '#') (\_ ->
+  is '#' >>> (
   valueParser(start :. body)
   )))
 
@@ -623,7 +626,17 @@ phoneParser =
 personParser ::
   Parser Person
 personParser =
-  error "todo"
+  fbindParser ageParser(\a ->
+  spaces1 >>> (
+  fbindParser firstNameParser(\fname ->
+  spaces1 >>> (
+  fbindParser surnameParser(\lname ->
+  spaces1 >>> (
+  fbindParser smokerParser(\smoke ->
+  spaces1 >>> (
+  fbindParser phoneParser(\phone_num ->
+  valueParser (Person a fname lname smoke phone_num)
+  )))))))))
 
 -- Make sure all the tests pass!
 
