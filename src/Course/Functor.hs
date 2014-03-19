@@ -116,7 +116,7 @@ void ::
   f a
   -> f ()
 void =
-  error "todo"
+  error "todo - must implement void"
 
 -----------------------
 -- SUPPORT LIBRARIES --

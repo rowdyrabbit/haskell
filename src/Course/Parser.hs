@@ -664,6 +664,9 @@ instance Functor Parser where
 -- | Write a Apply instance for a @Parser@.
 -- /Tip:/ Use @bindParser@ and @valueParser@.
 instance Apply Parser where
+-- (<$>) ::        (a -> b)  -> Parser a -> Parser b (this is fmap) = general form of fbindParser (aka fmap)
+-- (<*>) :: Parser (a -> b)  -> Parser a -> Parser b (this is apply) = general form of valueParser (aka pure)
+-- (=<<) :: (a -> Parser b)  -> Parser a -> Parser b
   (<*>) =
     error "todo"
 

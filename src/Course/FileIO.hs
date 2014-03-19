@@ -63,7 +63,9 @@ the contents of c
 main ::
   IO ()
 main =
-  error "todo"
+  do
+    args <- getArgs
+    void (sequenceIO (map run args))
 
 type FilePath =
   Chars
@@ -72,31 +74,71 @@ type FilePath =
 run ::
   Chars
   -> IO ()
-run =
-  error "todo"
+run filepath =
+  do
+    content <- readFile filepath
+    files <- getFiles (lines content)
+    printFiles files
 
 getFiles ::
   List FilePath
   -> IO (List (FilePath, Chars))
-getFiles =
-  error "todo"
+getFiles Nil = pure(Nil)
+getFiles (h :. t) =
+    getFile h >>= \_ -> getFiles t
+    -- getFiles paths = sequenceIO (map getFile paths) -- better solution than recursion.
 
 getFile ::
   FilePath
   -> IO (FilePath, Chars)
-getFile =
-  error "todo"
+getFile path =
+ readFile path >>= \content ->
+ pure (path, content)
+
 
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles =
-  error "todo"
+printFiles Nil = pure()
+printFiles ((x,y) :. t) =
+  printFile x y >>= \_ -> printFiles t
+
+--  printFiles x =
+--    void (sequenceIO (map (\(path, ct) -> printFile path ct) x) - Tony's solution
+
 
 printFile ::
   FilePath
   -> Chars
   -> IO ()
-printFile =
-  error "todo"
+printFile path contents =
+  putStrLn path >>= \_ -> putStrLn contents
 
+
+sequenceIO ::
+  List (IO a)
+    -> IO (List a)
+sequenceIO  Nil = pure Nil
+sequenceIO (h :. t) =
+-- h :: IO a
+-- sequence t :: IO (List a)
+-- a :: a
+-- r :: List a
+  h >>= \a ->
+  sequenceIO t >>= \r ->
+  pure (a :. r)
+
+
+
+
+--    foldRight (twiceIO (:.)) (pure Nil)
+--
+--
+--twiceIO :: (a -> b-> c)
+--  -> IO a
+--  -> IO b
+--  -> IO c
+--twiceIO f a b =
+--   do aa <- a
+--      bb <- b
+--      pure (f aa bb)
