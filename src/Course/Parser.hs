@@ -625,18 +625,32 @@ phoneParser =
 -- Result > rest< Person {age = 123, firstName = "Fred", surname = "Clarkson", smoker = 'y', phone = "123-456.789"}
 personParser ::
   Parser Person
+--personParser =
+--  fbindParser ageParser(\a ->
+--  spaces1 >>> (
+--  fbindParser firstNameParser(\fname ->
+--  spaces1 >>> (
+--  fbindParser surnameParser(\lname ->
+--  spaces1 >>> (
+--  fbindParser smokerParser(\smoke ->
+--  spaces1 >>> (
+--  fbindParser phoneParser(\phone_num ->
+--  valueParser (Person a fname lname smoke phone_num)
+--  )))))))))
+
 personParser =
-  fbindParser ageParser(\a ->
-  spaces1 >>> (
-  fbindParser firstNameParser(\fname ->
-  spaces1 >>> (
-  fbindParser surnameParser(\lname ->
-  spaces1 >>> (
-  fbindParser smokerParser(\smoke ->
-  spaces1 >>> (
-  fbindParser phoneParser(\phone_num ->
-  valueParser (Person a fname lname smoke phone_num)
-  )))))))))
+  do
+    a <- ageParser
+    _ <- spaces1
+    fname <- firstNameParser
+    _ <- spaces1
+    lname <- surnameParser
+    _ <- spaces1
+    smoke <- smokerParser
+    _ <- spaces1
+    phone_num <- phoneParser
+    valueParser (Person a fname lname smoke phone_num)
+
 
 -- Make sure all the tests pass!
 
@@ -661,6 +675,6 @@ instance Applicative Parser where
 -- | Write a Bind instance for a @Parser@.
 instance Bind Parser where
   (=<<) =
-    error "todo"
+    bindParser
 
 instance Monad Parser where
