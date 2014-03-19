@@ -549,7 +549,7 @@ smokerParser =
 phoneBodyParser ::
   Parser Chars
 phoneBodyParser =
-  error "todo"
+  list (digit ||| is '.' ||| is '-')
 
 -- | Write a parser for Person.phone.
 --
@@ -571,7 +571,11 @@ phoneBodyParser =
 phoneParser ::
   Parser Chars
 phoneParser =
-  error "todo"
+  fbindParser digit (\start ->
+  fbindParser phoneBodyParser (\body ->
+  fbindParser (is '#') (\_ ->
+  valueParser(start :. body)
+  )))
 
 -- | Write a parser for Person.
 --
