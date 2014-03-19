@@ -36,7 +36,7 @@ instance Show ParseError where
   show (ExpectedEof i) =
     stringconcat ["Expected end of stream, but got >", show i, "<"]
   show (UnexpectedChar c) =
-    stringconcat ["Unexpected character", show [c]]
+    stringconcat ["Unexpected character ", show [c]]
   show Failed =
     "Parse failed"
 
@@ -172,11 +172,11 @@ bindParser f (P p) =
 
 -- | This is @bindParser@ with the arguments flipped.
 -- It might be more helpful to use this function if you prefer this argument order.
-flbindParser ::
+fbindParser ::
   Parser a
   -> (a -> Parser b)
   -> Parser b
-flbindParser =
+fbindParser =
   flip bindParser
 
 
@@ -450,8 +450,7 @@ thisMany ::
   Int
   -> Parser a
   -> Parser (List a)
-thisMany =
-  error "todo"
+thisMany i pa = sequenceParser(replicate i pa)
 
 -- | Write a parser for Person.age.
 --
@@ -469,8 +468,7 @@ thisMany =
 -- True
 ageParser ::
   Parser Int
-ageParser =
-  error "todo"
+ageParser = natural
 
 -- | Write a parser for Person.firstName.
 -- /First Name: non-empty string that starts with a capital letter and is followed by zero or more lower-case letters/
@@ -485,7 +483,9 @@ ageParser =
 firstNameParser ::
   Parser Chars
 firstNameParser =
-  error "todo"
+    fbindParser upper (\h ->
+    fbindParser (list lower) (\t ->
+    valueParser (h :. t)))
 
 -- | Write a parser for Person.surname.
 --
@@ -504,7 +504,10 @@ firstNameParser =
 surnameParser ::
   Parser Chars
 surnameParser =
-  error "todo"
+    fbindParser upper (\u ->
+    fbindParser (thisMany 5 lower) (\r ->
+    fbindParser (list lower) (\s ->
+    valueParser (u :. r ++ s))))
 
 -- | Write a parser for Person.smoker.
 --
@@ -523,7 +526,8 @@ surnameParser =
 smokerParser ::
   Parser Char
 smokerParser =
-  error "todo"
+  is 'y' ||| is 'n'
+
 
 -- | Write part of a parser for Person.phoneBody.
 -- This parser will only produce a string of digits, dots or hyphens.
