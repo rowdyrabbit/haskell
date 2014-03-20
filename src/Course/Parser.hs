@@ -625,6 +625,7 @@ phoneParser =
 -- Result > rest< Person {age = 123, firstName = "Fred", surname = "Clarkson", smoker = 'y', phone = "123-456.789"}
 personParser ::
   Parser Person
+-- original (alternative) solution:
 --personParser =
 --  fbindParser ageParser(\a ->
 --  spaces1 >>> (
@@ -666,7 +667,7 @@ instance Functor Parser where
 instance Apply Parser where
 -- (<$>) ::        (a -> b)  -> Parser a -> Parser b (this is fmap) = general form of fbindParser (aka fmap)
 -- (<*>) :: Parser (a -> b)  -> Parser a -> Parser b (this is apply) = general form of valueParser (aka pure)
--- (=<<) :: (a -> Parser b)  -> Parser a -> Parser b
+-- (=<<) :: (a -> Parser b)  -> Parser a -> Parser b - bind 
   (<*>) =
     error "todo"
 
